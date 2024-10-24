@@ -132,14 +132,98 @@ document.getElementById('undoBtn').addEventListener('click', function(){
 // Check if the move is valid (basic move check for now)
 function isValidMove(startRow, startCol, endRow, endCol) {
     const piece = board[startRow][startCol];
-    const targetPiece = board[endRow][endCol];
 
-    // Prevent moving to a square with a piece of the same color
-    if (targetPiece && isCorrectTurn(targetPiece)) {
-        return false;
+    switch (piece.toLowerCase()) {
+        case 'p': // Pawn
+            return isValidPawnMove(startRow, startCol, endRow, endCol, piece);
+        case 'r': // Rook
+            return isValidRookMove(startRow, startCol, endRow, endCol);
+        case 'n': // Knight
+            return isValidKnightMove(startRow, startCol, endRow, endCol);
+        case 'b': // Bishop
+            return isValidBishopMove(startRow, startCol, endRow, endCol);
+        case 'q': // Queen
+            return isValidQueenMove(startRow, startCol, endRow, endCol);
+        case 'k': // King
+            return isValidKingMove(startRow, startCol, endRow, endCol);
+        default:
+            return false;
+    }
+}
+
+// Pawn move validation
+function isValidPawnMove(startRow, startCol, endRow, endCol, piece) {
+    const direction = piece === 'P' ? -1 : 1; // White moves up (-1), Black moves down (+1)
+    const startingRow = piece === 'P' ? 6 : 1; // White starts at row 6, Black at row 1
+
+    // Forward move (single step)
+    if (startCol === endCol && board[endRow][endCol] === '') {
+        if (startRow + direction === endRow) {
+            return true;
+        }
+
+        // Double-step move from starting position
+        if (startRow === startingRow && startRow + 2 * direction === endRow && board[startRow + direction][endCol] === '') {
+            return true;
+        }
     }
 
-    // Simple check for now (you can add piece-specific move validation)
+    // Capture move (diagonal)
+    if (Math.abs(startCol - endCol) === 1 && startRow + direction === endRow) {
+        if (board[endRow][endCol] && !isCorrectTurn(board[endRow][endCol])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Rook move validation
+function isValidRookMove(startRow, startCol, endRow, endCol) {
+    if (startRow !== endRow && startCol !== endCol) return false;
+    return isPathClear(startRow, startCol, endRow, endCol);
+}
+
+// Knight move validation
+function isValidKnightMove(startRow, startCol, endRow, endCol) {
+    const rowDiff = Math.abs(startRow - endRow);
+    const colDiff = Math.abs(startCol - endCol);
+    return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+}
+
+// Bishop move validation
+function isValidBishopMove(startRow, startCol, endRow, endCol) {
+    if (Math.abs(startRow - endRow) !== Math.abs(startCol - endCol)) return false;
+    return isPathClear(startRow, startCol, endRow, endCol);
+}
+
+// Queen move validation (combines rook and bishop)
+function isValidQueenMove(startRow, startCol, endRow, endCol) {
+    return isValidRookMove(startRow, startCol, endRow, endCol) || 
+           isValidBishopMove(startRow, startCol, endRow, endCol);
+}
+
+// King move validation
+function isValidKingMove(startRow, startCol, endRow, endCol) {
+    const rowDiff = Math.abs(startRow - endRow);
+    const colDiff = Math.abs(startCol - endCol);
+    return rowDiff <= 1 && colDiff <= 1;
+}
+
+// Helper function to check if the path is clear for sliding pieces (rook, bishop, queen)
+function isPathClear(startRow, startCol, endRow, endCol) {
+    const rowStep = Math.sign(endRow - startRow);
+    const colStep = Math.sign(endCol - startCol);
+
+    let currentRow = startRow + rowStep;
+    let currentCol = startCol + colStep;
+
+    while (currentRow !== endRow || currentCol !== endCol) {
+        if (board[currentRow][currentCol]) return false;
+        currentRow += rowStep;
+        currentCol += colStep;
+    }
+
     return true;
 }
 
