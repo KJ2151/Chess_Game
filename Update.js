@@ -1,5 +1,5 @@
-  // Initialize the chessboard with pieces
-  let board = [
+// Initialize the chessboard with pieces
+let board = [
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
     ['', '', '', '', '', '', '', ''],
@@ -153,12 +153,17 @@ function isValidMove(startRow, startCol, endRow, endCol) {
 
 // Pawn move validation
 function isValidPawnMove(startRow, startCol, endRow, endCol, piece) {
-    const direction = piece === 'P' ? -1 : 1; // White moves up, Black moves down
+    const direction = piece === 'P' ? -1 : 1; // White moves up (-1), Black moves down (+1)
+    const startingRow = piece === 'P' ? 6 : 1; // White starts at row 6, Black at row 1
 
-    // Forward move
+    // Forward move (single step)
     if (startCol === endCol && board[endRow][endCol] === '') {
-        if ((startRow + direction === endRow) || 
-            (startRow + 2 * direction === endRow && (startRow === 1 || startRow === 6))) {
+        if (startRow + direction === endRow) {
+            return true;
+        }
+
+        // Double-step move from starting position
+        if (startRow === startingRow && startRow + 2 * direction === endRow && board[startRow + direction][endCol] === '') {
             return true;
         }
     }
@@ -222,26 +227,20 @@ function isPathClear(startRow, startCol, endRow, endCol) {
     return true;
 }
 
-
-// Highlight the selected square
+// Helper functions for visual feedback
 function highlightSelectedSquare(row, col) {
-    const squares = document.querySelectorAll('.square');
-    squares.forEach(square => {
-        const squareRow = square.dataset.row;
-        const squareCol = square.dataset.col;
-        if (parseInt(squareRow) === row && parseInt(squareCol) === col) {
-            square.style.border = '2px solid red';
-        }
-    });
+    const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (square) {
+        square.classList.add('selected');
+    }
 }
 
-// Clear all highlights
 function clearHighlights() {
-    const squares = document.querySelectorAll('.square');
-    squares.forEach(square => {
-        square.style.border = '';
-    });
+    const selectedSquares = document.querySelectorAll('.selected');
+    selectedSquares.forEach(square => square.classList.remove('selected'));
 }
 
-// Initialize the game on load
-initChessboard();
+// Initialize the board on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initChessboard();
+});
